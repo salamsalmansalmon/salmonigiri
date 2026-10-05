@@ -231,7 +231,6 @@ if __name__ == '__main__':
     application.add_handler(get_user_id_handler)
     application.add_handler(tag_all_template_handler)
     application.add_handler(member_handler)
-    application.add_handler(collect_members_handler)
     application.add_handler(addexpenses_handler)
 
     application.run_polling()
