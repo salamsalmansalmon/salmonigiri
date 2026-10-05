@@ -50,7 +50,7 @@ logging.basicConfig(
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
-        text="Shin hunter ready sires"
+        text="yahoo"
     )
 
 #add expense function
@@ -60,8 +60,8 @@ valid_categories = [str(item).strip().lower() for row in raw_categories for item
 async def add_expenses(update: Update, context: ContextTypes.DEFAULT_TYPE):
     #cek user
     user = update.effective_user
-    if user != authorized_id:
-        update.message.reply_text(
+    if user.id != authorized_id:
+        await update.message.reply_text(
         "Anda bukan admin bot"
         )
         return
