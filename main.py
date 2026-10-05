@@ -127,15 +127,40 @@ async def add_expenses(update: Update, context: ContextTypes.DEFAULT_TYPE):
         text=changelog_message,
         parse_mode="HTML"
     )
-
-#member collector 
 members = {}
 
-async def collect_members(update: Update, context: ContextTypes.DEFAULT_TYPE):
+tagtrigger = '@all'
+
+async def member_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
 
+    # Simpan member
     if user:
         members[user.id] = user.full_name
+
+    # Cek apakah pesan adalah @all
+    if update.message and update.message.text == tagtrigger:
+
+        mentions = []
+
+        for user_id, name in members.items():
+            mentions.append(
+                f'<a href="tg://user?id={user_id}">{html.escape(name)}</a>'
+            )
+
+        if not mentions:
+            await update.message.reply_text(
+                "Belum ada member yang terdaftar."
+            )
+            return
+
+        text = " ".join(mentions)
+
+        await update.message.reply_text(
+            text,
+            parse_mode="HTML"
+        )
+
 
 #reg member tag
 tagtrigger = '@all'
@@ -195,21 +220,17 @@ if __name__ == '__main__':
 
     addexpenses_handler = CommandHandler("addexpenses", add_expenses)
 
-    tagall_Handler = MessageHandler(
-        filters.TEXT & ~filters.COMMAND,
-        tagall
-    )
-    collect_members_handler = MessageHandler(
-        filters.ALL & ~filters.COMMAND,
-        collect_members
+    member_handler = MessageHandler(
+    filters.TEXT & ~filters.COMMAND,
+    member_handler
     )
 
     get_user_id_handler = CommandHandler("getid", get_user_id)
-
+    
     application.add_handler(start_handler)
     application.add_handler(get_user_id_handler)
     application.add_handler(tag_all_template_handler)
-    application.add_handler(tagall_Handler)
+    application.add_handler(member_handler)
     application.add_handler(collect_members_handler)
     application.add_handler(addexpenses_handler)
 
