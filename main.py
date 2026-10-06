@@ -50,7 +50,7 @@ logging.basicConfig(
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
-        text="yahoo"
+        text="yaa-hoo"
     )
 
 #add expense function
@@ -89,7 +89,7 @@ async def add_expenses(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(
             "kategori tidak valid\n"
             "Kategori yang tersedia:\n"
-            + "\n".join(f"- {x}" for x in valid_categories)
+            + "\n".join(f"- {x.title()}" for x in valid_categories)
         )
         return
     #input ke sheets
@@ -99,8 +99,8 @@ async def add_expenses(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         sheet.update_cell(expenses_row, 7, date)
         sheet.update_cell(expenses_row, 8, nominal)
-        sheet.update_cell(expenses_row, 9, description)
-        sheet.update_cell(expenses_row, 10, category)
+        sheet.update_cell(expenses_row, 9, description.title())
+        sheet.update_cell(expenses_row, 10, category.title())
     except Exception as e:
         await update.message.reply_text(
             "❌ Google Sheet Error, gagal menyimpan pengeluaran ke database."
@@ -121,7 +121,7 @@ async def add_expenses(update: Update, context: ContextTypes.DEFAULT_TYPE):
         f"💰 Nominal: Rp{nominal:,.0f}\n"
         f"📂 Kategori: {category}\n"
         f"📝 Keterangan: {description}"
-    )
+    ).title()
     await context.bot.send_message(
         chat_id=log_chat_id,
         text=changelog_message,
