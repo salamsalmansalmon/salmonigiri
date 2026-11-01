@@ -55,7 +55,7 @@ workbook = client.open_by_key(sheet_id)
 
 
 def get_active_sheet():
-    template = workbook.worksheet("template")
+    template = workbook.worksheet("Template")
 
     active_month = template.acell("K1").value.strip()
 
@@ -183,7 +183,7 @@ async def new_month(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     try:
         # Template
-        template = workbook.worksheet("template")
+        template = workbook.worksheet("Template")
 
         # Simpan bulan aktif ke K1 template
         template.update("K1", month_name)
