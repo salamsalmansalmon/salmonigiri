@@ -39,7 +39,7 @@ creds = Credentials.from_service_account_info(
 client = gspread.authorize(creds)
 sheet_id = "1dCl8y5736oWlLBSv35gll2PnuXWxntEaxtZ4d6KskDI"
 workbook = client.open_by_key(sheet_id)
-sheet = workbook.worksheet("template")
+sheet = workbook.worksheet("Template")
 
 workbook = client.open_by_key(sheet_id)
 
