@@ -189,7 +189,10 @@ async def new_month(update: Update, context: ContextTypes.DEFAULT_TYPE):
         template = workbook.worksheet("Template")
 
         # Simpan bulan aktif ke K1 template
-        template.update("K1", month_name)
+        template.update(
+        range_name="K1",
+        values=[[month_name]]
+        )
 
         # Cek apakah sheet bulan tersebut sudah ada
         try:
