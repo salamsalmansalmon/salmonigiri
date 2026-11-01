@@ -39,21 +39,6 @@ creds = Credentials.from_service_account_info(
 client = gspread.authorize(creds)
 sheet_id = "1dCl8y5736oWlLBSv35gll2PnuXWxntEaxtZ4d6KskDI"
 workbook = client.open_by_key(sheet_id)
-
-print("===== DAFTAR WORKSHEET =====")
-
-for ws in workbook.worksheets():
-    print(repr(ws.title))
-
-print("============================")
-
-sheet = get_active_sheet()
-
-print("ACTIVE SHEET:", sheet.title)
-
-workbook = client.open_by_key(sheet_id)
-
-
 def get_active_sheet():
     template = workbook.worksheet("Template")
 
@@ -72,6 +57,21 @@ def get_active_sheet():
             "Menggunakan template."
         )
         return template
+print("===== DAFTAR WORKSHEET =====")
+
+for ws in workbook.worksheets():
+    print(repr(ws.title))
+
+print("============================")
+
+sheet = get_active_sheet()
+
+print("ACTIVE SHEET:", sheet.title)
+
+workbook = client.open_by_key(sheet_id)
+
+
+
 
 
 sheet = get_active_sheet()
