@@ -39,7 +39,32 @@ creds = Credentials.from_service_account_info(
 client = gspread.authorize(creds)
 sheet_id = "1dCl8y5736oWlLBSv35gll2PnuXWxntEaxtZ4d6KskDI"
 workbook = client.open_by_key(sheet_id)
-sheet = workbook.worksheet("October")
+sheet = workbook.worksheet("template")
+
+workbook = client.open_by_key(sheet_id)
+
+
+def get_active_sheet():
+    template = workbook.worksheet("template")
+
+    active_month = template.acell("K1").value.strip()
+
+    # Kalau K1 kosong
+    if not active_month:
+        return template
+
+    try:
+        return workbook.worksheet(active_month)
+
+    except gspread.WorksheetNotFound:
+        logging.warning(
+            f"Sheet '{active_month}' tidak ditemukan. "
+            "Menggunakan template."
+        )
+        return template
+
+
+sheet = get_active_sheet()
 #Logging Setup
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -54,10 +79,11 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
 #add expense function
-raw_categories = sheet.get_values('L15:L22')
-valid_categories = [str(item).strip().lower() for row in raw_categories for item in row if item]
+
 
 async def add_expenses(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    raw_categories = sheet.get_values('L15:L22')
+    valid_categories = [str(item).strip().lower() for row in raw_categories for item in row if item]
     #cek user
     user = update.effective_user
     if user.id != authorized_id:
@@ -127,6 +153,73 @@ async def add_expenses(update: Update, context: ContextTypes.DEFAULT_TYPE):
         text=changelog_message,
         parse_mode="HTML"
     )
+#===COMMAND NEWMONTH=====
+    
+async def new_month(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    global sheet
+
+    # Cek admin
+    user = update.effective_user
+
+    if user.id != authorized_id:
+        await update.message.reply_text(
+            "❌ Anda bukan admin bot."
+        )
+        return
+
+    # Ambil bulan saat ini
+    timezone = ZoneInfo("Asia/Jakarta")
+    month_name = datetime.now(timezone).strftime("%B")
+
+    try:
+        # Template
+        template = workbook.worksheet("template")
+
+        # Simpan bulan aktif ke K1 template
+        template.update("K1", month_name)
+
+        # Cek apakah sheet bulan tersebut sudah ada
+        try:
+            existing_sheet = workbook.worksheet(month_name)
+
+            # Jika sudah ada, gunakan sheet tersebut
+            sheet = existing_sheet
+
+            await update.message.reply_text(
+                f"⚠️ Sheet <b>{month_name}</b> sudah ada.\n\n"
+                f"📌 Sheet utama sekarang: <b>{month_name}</b>",
+                parse_mode="HTML"
+            )
+
+            return
+
+        except gspread.WorksheetNotFound:
+            pass
+
+        # Jika belum ada, duplicate template
+        new_sheet = workbook.duplicate_sheet(
+            template.id,
+            new_sheet_name=month_name
+        )
+
+        # Jadikan sheet baru sebagai sheet utama
+        sheet = new_sheet
+
+        await update.message.reply_text(
+            f"✅ Sheet baru berhasil dibuat!\n\n"
+            f"📄 Template → <b>{month_name}</b>\n"
+            f"📌 Sheet utama: <b>{month_name}</b>",
+            parse_mode="HTML"
+        )
+
+    except Exception as e:
+        logging.error(f"Error membuat sheet bulan baru: {e}")
+
+        await update.message.reply_text(
+            "❌ Gagal membuat sheet bulan baru.\n\n"
+            f"Error: {e}"
+        )
+
 members = {}
 
 tagtrigger = '@all'
@@ -215,6 +308,8 @@ if __name__ == '__main__':
 
     start_handler = CommandHandler("start", start)
 
+    newmonth_handler = CommandHandler("newmonth", new_month)
+
     tag_all_template_handler = CommandHandler("tagall", tagmembertemplate)
     
 
@@ -232,5 +327,6 @@ if __name__ == '__main__':
     application.add_handler(tag_all_template_handler)
     application.add_handler(member_handler)
     application.add_handler(addexpenses_handler)
+    application.add_handler(newmonth_handler)
 
     application.run_polling()
